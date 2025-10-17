@@ -1,0 +1,11 @@
+client_id,contract_id,category,limit_hours,rate_inr,start_date
+C001,CT-1001,how-to,10,2000,2024-01-01
+C001,CT-1002,implementation,40,2500,2024-01-01
+C002,CT-2001,how-to,15,1800,2024-01-01
+C003,CT-3001,how-to,12,2200,2024-01-01
+C004,CT-4001,security-review,20,3000,2024-01-01
+C005,CT-5001,how-to,8,2200,2024-01-01
+C006,CT-6001,training,16,2000,2024-01-01
+C007,CT-7001,how-to,10,1800,2024-01-01
+C008,CT-8001,how-to,10,2200,2024-01-01
+

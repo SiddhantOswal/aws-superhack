@@ -1,0 +1,10 @@
+{
+  "name": "approve-action",
+  "version": "0.1.0",
+  "main": "dist/index.js",
+  "scripts": {
+    "build": "esbuild src/index.ts --bundle --platform=node --target=node20 --outfile=dist/index.js",
+    "watch": "esbuild src/index.ts --bundle --platform=node --target=node20 --outfile=dist/index.js --watch"
+  }
+}
+

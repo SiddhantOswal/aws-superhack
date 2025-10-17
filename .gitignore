@@ -1,0 +1,11 @@
+node_modules/
+dist/
+.cdk.staging/
+.aws-sam/
+.DS_Store
+.env*
+cdk.out/
+*.js.map
+*.d.ts
+/.pnpm-store
+

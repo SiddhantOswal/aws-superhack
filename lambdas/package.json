@@ -1,0 +1,10 @@
+{
+  "name": "lambdas",
+  "private": true,
+  "version": "0.1.0",
+  "scripts": {
+    "build": "pnpm -r --filter './lambdas/*' run build",
+    "watch": "pnpm -r --filter './lambdas/*' run watch"
+  }
+}
+

@@ -1,0 +1,24 @@
+{
+  "compilerOptions": {
+    "target": "ES2020",
+    "module": "commonjs",
+    "strict": true,
+    "esModuleInterop": true,
+    "forceConsistentCasingInFileNames": true,
+    "skipLibCheck": true,
+    "moduleResolution": "node",
+    "resolveJsonModule": true,
+    "sourceMap": true
+  },
+  "files": [],
+  "references": [
+    { "path": "./lambdas/approve-action" },
+    { "path": "./lambdas/athena-bootstrap" },
+    { "path": "./lambdas/draft-change-order" },
+    { "path": "./lambdas/policy-evaluator" },
+    { "path": "./lambdas/qbr-pdf" },
+    { "path": "./lambdas/shelfware-report" },
+    { "path": "./lambdas/underbilling-report" }
+  ]
+}
+

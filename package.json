@@ -1,0 +1,43 @@
+{
+  "name": "superhack",
+  "private": true,
+  "version": "0.1.0",
+  "description": "MSP Growth OS monorepo (CDK + Lambdas + scripts)",
+  "engines": {
+    "node": ">=20"
+  },
+  "workspaces": [
+    "infra",
+    "lambdas",
+    "scripts"
+  ],
+  "scripts": {
+    "build": "pnpm -r run build",
+    "synth": "cd infra && npx cdk synth",
+    "deploy": "cd infra && npx cdk deploy --all",
+    "destroy": "cd infra && npx cdk destroy --all"
+  },
+  "devDependencies": {
+    "aws-cdk": "^2.150.0",
+    "aws-cdk-lib": "^2.154.0",
+    "constructs": "^10.3.0",
+    "esbuild": "^0.23.0",
+    "@types/node": "^20.12.12",
+    "ts-node": "^10.9.2",
+    "typescript": "^5.4.0"
+  },
+  "dependencies": {
+    "@aws-sdk/client-athena": "^3.645.0",
+    "@aws-sdk/client-dynamodb": "^3.645.0",
+    "@aws-sdk/client-eventbridge": "^3.645.0",
+    "@aws-sdk/client-glue": "^3.645.0",
+    "@aws-sdk/client-s3": "^3.645.0",
+    "@aws-sdk/client-ses": "^3.645.0",
+    "@aws-sdk/client-sfn": "^3.645.0",
+    "@aws-sdk/client-sts": "^3.645.0",
+    "@aws-sdk/lib-dynamodb": "^3.645.0",
+    "@aws-sdk/s3-request-presigner": "^3.645.0",
+    "pdfkit": "^0.15.0"
+  }
+}
+

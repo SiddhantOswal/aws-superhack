@@ -1,0 +1,172 @@
+# MSP Growth OS - API Test Suite
+# Use VSCode REST Client extension to test these endpoints
+# Set the variables below with your actual values
+
+@API = https://your-api-gateway-url.execute-api.ap-south-1.amazonaws.com/prod
+@ACTION_ID = your-action-id-here
+
+### 1. Initialize Data Catalog - Create Athena Views
+# This creates the required views: scope_usage_vw, shelfware_vw, underbilling_vw
+POST {{API}}/admin/bootstrap
+Content-Type: application/json
+
+###
+
+### 2. Get Shelfware Report
+# Returns top 20 reclaimable seats by annual saving
+GET {{API}}/reports/shelfware
+Content-Type: application/json
+
+###
+
+### 3. Get Underbilling Report  
+# Returns invoice variance analysis with suggested addendums
+GET {{API}}/reports/underbilling
+Content-Type: application/json
+
+###
+
+### 4. Get Actions Ledger for Specific Client
+# Returns actions for a specific client (replace 'acme' with actual client_id)
+GET {{API}}/ledger?client_id=acme
+Content-Type: application/json
+
+###
+
+### 5. Get All Actions Ledger
+# Returns last 50 actions across all clients
+GET {{API}}/ledger
+Content-Type: application/json
+
+###
+
+### 6. Approve Action (Basic)
+# Approve an action with default estimated savings
+POST {{API}}/actions/{{ACTION_ID}}/approve
+Content-Type: application/json
+
+{
+}
+
+###
+
+### 7. Approve Action with Custom Savings Override
+# Approve an action with custom estimated savings amount
+POST {{API}}/actions/{{ACTION_ID}}/approve
+Content-Type: application/json
+
+{
+  "est_saving_inr": 50000,
+  "send_email": false
+}
+
+###
+
+### 8. Approve Action with Email (SES Sandbox)
+# Approve and attempt to send email (requires verified sender/recipient in SES)
+POST {{API}}/actions/{{ACTION_ID}}/approve
+Content-Type: application/json
+
+{
+  "est_saving_inr": 75000,
+  "send_email": true,
+  "email_to": "customer@example.com"
+}
+
+###
+
+### 9. Generate QBR PDF Report
+# Generate PDF for specific client and period (replace with actual values)
+POST {{API}}/qbr/pdf
+Content-Type: application/json
+
+{
+  "client_id": "acme",
+  "period": "2025-09"
+}
+
+###
+
+### 10. Generate QBR PDF with Query Parameters
+# Alternative way to generate PDF using query parameters
+POST {{API}}/qbr/pdf?client_id=acme&period=2025-09
+Content-Type: application/json
+
+###
+
+# Example Test Data Setup Commands:
+# 
+# 1. First, get your API URL from CDK deployment outputs:
+#    aws cloudformation describe-stacks --stack-name MspGrowthAppStack --query 'Stacks[0].Outputs'
+#
+# 2. Update the @API variable above with your actual API Gateway URL
+#
+# 3. To get an ACTION_ID for testing:
+#    - Run the shelfware or underbilling report to see if there are any actions
+#    - Or trigger the policy evaluator to create a PENDING action
+#    - Or check the actions ledger to find an existing action_id
+#
+# 4. Replace 'acme' with actual client IDs from your data (e.g., 'C001', 'C002', etc.)
+#
+# 5. Adjust the period format to match your data (YYYY-MM format)
+
+### Example Response Formats:
+#
+# Bootstrap Response:
+# { "status": "ok" }
+#
+# Shelfware Response:
+# {
+#   "items": [
+#     {
+#       "client_id": "C001",
+#       "app": "Office365",
+#       "reclaimable_seats": "45",
+#       "annual_saving_inr": "648000"
+#     }
+#   ]
+# }
+#
+# Underbilling Response:
+# {
+#   "items": [
+#     {
+#       "client_id": "C001",
+#       "period": "2024-01",
+#       "hours": "120",
+#       "expected_inr": "264000",
+#       "billed_inr": "200000",
+#       "delta_inr": "64000",
+#       "suggestion": "Addendum: Invoice delta INR 64000 for 2024-01"
+#     }
+#   ]
+# }
+#
+# Ledger Response:
+# {
+#   "items": [
+#     {
+#       "action_id": "123e4567-e89b-12d3-a456-426614174000",
+#       "client_id": "C001",
+#       "category": "how-to",
+#       "status": "PENDING",
+#       "created_at": "2024-01-15T10:30:00Z",
+#       "est_saving_inr": 10000
+#     }
+#   ]
+# }
+#
+# Approve Response:
+# {
+#   "status": "APPROVED",
+#   "action_id": "123e4567-e89b-12d3-a456-426614174000",
+#   "email": {
+#     "subject": "Action required: Approve change order (how-to)",
+#     "body": "Dear customer,\n\nWe detected 4h over the contracted 10h..."
+#   }
+# }
+#
+# QBR PDF Response:
+# {
+#   "signedUrl": "https://s3.amazonaws.com/bucket/pdf/C001-2025-09.pdf?X-Amz-Algorithm=..."
+# }
