@@ -1,0 +1,48 @@
+[
+  {
+    "invoice_id": "INV-4001",
+    "client": "acme",
+    "period_start": "2025-09-01",
+    "period_end": "2025-09-30",
+    "items": [
+      { "description": "CRM seats", "qty": 25, "rate_inr": 1200, "amount_inr": 30000 },
+      { "description": "Analytics seats", "qty": 10, "rate_inr": 2000, "amount_inr": 20000 },
+      { "description": "Support hours", "qty": 12.25, "rate_inr": 1500, "amount_inr": 18375 }
+    ],
+    "total_inr": 68375,
+    "status": "open",
+    "issued_at": "2025-10-01",
+    "due_at": "2025-10-15"
+  },
+  {
+    "invoice_id": "INV-4002",
+    "client": "globex",
+    "period_start": "2025-09-01",
+    "period_end": "2025-09-30",
+    "items": [
+      { "description": "Support Suite seats", "qty": 40, "rate_inr": 900, "amount_inr": 36000 },
+      { "description": "BI seats", "qty": 15, "rate_inr": 2500, "amount_inr": 37500 },
+      { "description": "Consulting hours", "qty": 7.25, "rate_inr": 2000, "amount_inr": 14500 }
+    ],
+    "total_inr": 88000,
+    "status": "paid",
+    "issued_at": "2025-10-03",
+    "due_at": "2025-10-17"
+  },
+  {
+    "invoice_id": "INV-4003",
+    "client": "initech",
+    "period_start": "2025-09-01",
+    "period_end": "2025-09-30",
+    "items": [
+      { "description": "Docs seats", "qty": 50, "rate_inr": 750, "amount_inr": 37500 },
+      { "description": "Migration hours", "qty": 5.5, "rate_inr": 1400, "amount_inr": 7700 }
+    ],
+    "total_inr": 45200,
+    "status": "overdue",
+    "issued_at": "2025-10-02",
+    "due_at": "2025-10-12"
+  }
+]
+
+

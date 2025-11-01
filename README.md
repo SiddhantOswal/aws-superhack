@@ -33,6 +33,23 @@ npx cdk destroy --all
 - `POST /qbr/pdf` - Generate QBR reports
 - `GET /reports/shelfware` - Shelfware analysis
 - `GET /reports/underbilling` - Underbilling analysis
+- `POST /policies/evaluate` - Manually trigger policy evaluation (local only)
+
+## Testing
+
+### Local Testing
+
+Start the mock API server:
+```bash
+pnpm start:mock
+```
+
+Then test endpoints locally at `http://localhost:3000` using:
+- **PowerShell:** `.\test-e2e.ps1`
+- **Bash:** `./test-e2e.sh`
+- **VS Code REST Client:** Use `docs/test.http`
+
+See **[docs/E2E_TESTING.md](docs/E2E_TESTING.md)** for complete testing guide with all endpoints and examples.
 
 ---
 

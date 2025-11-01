@@ -1,0 +1,10 @@
+[
+  { "entry_id": "TE-3001", "client": "acme", "user": "jane.doe@acme.com", "project": "crm-onboarding", "task": "data-import", "hours": 4.5, "rate_inr": 1500, "date": "2025-10-10" },
+  { "entry_id": "TE-3002", "client": "acme", "user": "john.smith@acme.com", "project": "analytics-dash", "task": "dashboard-widgets", "hours": 6, "rate_inr": 1800, "date": "2025-10-11" },
+  { "entry_id": "TE-3003", "client": "globex", "user": "maria.g@globex.com", "project": "support-suite", "task": "sla-tuning", "hours": 3, "rate_inr": 1600, "date": "2025-10-09" },
+  { "entry_id": "TE-3004", "client": "globex", "user": "lee.chan@globex.com", "project": "bi-rollout", "task": "report-scheduling", "hours": 7.25, "rate_inr": 2000, "date": "2025-09-28" },
+  { "entry_id": "TE-3005", "client": "initech", "user": "peter@initech.com", "project": "docs-migration", "task": "template-setup", "hours": 5.5, "rate_inr": 1400, "date": "2025-10-12" },
+  { "entry_id": "TE-3006", "client": "acme", "user": "support@acme.com", "project": "helpdesk", "task": "automation-rules", "hours": 2.75, "rate_inr": 1500, "date": "2025-10-13" }
+]
+
+

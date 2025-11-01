@@ -1,0 +1,9 @@
+[
+  { "policy_id": "POL-5001", "client": "acme", "name": "Underbilling Alert", "threshold_inr": 50000, "rule": "invoice_total_lt_threshold", "active": true },
+  { "policy_id": "POL-5002", "client": "acme", "name": "Shelfware Check", "threshold_inr": 10, "rule": "seats_unused_gt_threshold", "active": true },
+  { "policy_id": "POL-5003", "client": "globex", "name": "Login Anomaly", "threshold_inr": 0, "rule": "logins_drop_percent_gt_30", "active": true },
+  { "policy_id": "POL-5004", "client": "globex", "name": "QBR Required", "threshold_inr": 0, "rule": "qbr_due_within_days_lt_30", "active": false },
+  { "policy_id": "POL-5005", "client": "initech", "name": "Time Entry Minimum", "threshold_inr": 2, "rule": "weekly_hours_lt_threshold", "active": true }
+]
+
+

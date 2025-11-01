@@ -1,10 +1,5 @@
-import {
-  AthenaClient,
-  StartQueryExecutionCommand,
-  GetQueryExecutionCommand,
-  GetQueryResultsCommand,
-  QueryExecutionState,
-} from '@aws-sdk/client-athena';
+import { USE_LOCAL_MOCK, MOCK_PATHS } from '../../../src/config/localConfig';
+import { readJSON } from '../../../src/utils/localService';
 
 const ATHENA_DB = process.env.ATHENA_DB || '';
 const ATHENA_WORKGROUP = process.env.ATHENA_WORKGROUP || '';
@@ -15,50 +10,9 @@ if (!ATHENA_DB || !ATHENA_WORKGROUP) {
   console.warn('ATHENA_DB and ATHENA_WORKGROUP must be set');
 }
 
-const athena = new AthenaClient({});
+// Local mock mode: no Athena calls. In cloud mode, bootstrap is disabled in this prototype.
 
-async function startAndWait(query: string): Promise<string> {
-  const start = await athena.send(
-    new StartQueryExecutionCommand({
-      QueryString: query,
-      QueryExecutionContext: { Database: ATHENA_DB },
-      WorkGroup: ATHENA_WORKGROUP,
-    }),
-  );
-  const id = start.QueryExecutionId!;
-
-  // Poll for completion
-  let state: QueryExecutionState | undefined;
-  const started = Date.now();
-  const timeoutMs = 5 * 60 * 1000; // 5 minutes
-  while (true) {
-    const exec = await athena.send(new GetQueryExecutionCommand({ QueryExecutionId: id }));
-    state = exec.QueryExecution?.Status?.State as QueryExecutionState | undefined;
-    if (state === 'SUCCEEDED') break;
-    if (state === 'FAILED' || state === 'CANCELLED') {
-      const reason = exec.QueryExecution?.Status?.StateChangeReason;
-      throw new Error(`Athena query ${id} ${state}: ${reason}`);
-    }
-    if (Date.now() - started > timeoutMs) {
-      throw new Error(`Athena query ${id} timed out`);
-    }
-    await new Promise((r) => setTimeout(r, 2000));
-  }
-  return id;
-}
-
-async function previewOne(viewName: string): Promise<void> {
-  try {
-    const q = `SELECT * FROM ${viewName} LIMIT 1`;
-    const id = await startAndWait(q);
-    const res = await athena.send(new GetQueryResultsCommand({ QueryExecutionId: id, MaxResults: 5 }));
-    // eslint-disable-next-line no-console
-    console.log(`Preview ${viewName}:`, JSON.stringify(res.ResultSet?.Rows?.[1]?.Data ?? []));
-  } catch (err) {
-    // eslint-disable-next-line no-console
-    console.warn(`Preview failed for ${viewName}:`, (err as Error).message);
-  }
-}
+// previewOne removed for local prototype
 
 function getQueries(): Array<{ name: string; sql: string }> {
   const scopeUsage = `
@@ -118,12 +72,20 @@ FULL OUTER JOIN invoices_by_period i
 }
 
 export async function main(): Promise<{ status: string }> {
-  const statements = getQueries();
-  for (const s of statements) {
-    await startAndWait(s.sql);
-    await previewOne(s.name);
+  if (USE_LOCAL_MOCK) {
+    // Load local data to simulate availability and provide a simple sanity log
+    try {
+      const licenses = await readJSON<any[]>(MOCK_PATHS.licenses);
+      // eslint-disable-next-line no-console
+      console.log(`Local bootstrap: loaded ${Array.isArray(licenses) ? licenses.length : 0} licenses`);
+    } catch {
+      // eslint-disable-next-line no-console
+      console.warn('Local bootstrap: unable to read licenses.json');
+    }
+    return { status: 'ok-local' };
   }
-  return { status: 'ok' };
+  // Cloud bootstrap disabled for hackathon prototype
+  return { status: 'skipped' };
 }
 
 export const handler = main;

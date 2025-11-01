@@ -2,47 +2,57 @@
 # Use VSCode REST Client extension to test these endpoints
 # Set the variables below with your actual values
 
+# For local testing, use:
+@LOCAL_API = http://localhost:3000
+
+# For AWS testing, use:
 @API = https://your-api-gateway-url.execute-api.ap-south-1.amazonaws.com/prod
+
+# Uncomment the one you want to use:
+@BASE_URL = {{LOCAL_API}}
+# @BASE_URL = {{API}}
+
 @ACTION_ID = your-action-id-here
 
 ### 1. Initialize Data Catalog - Create Athena Views
 # This creates the required views: scope_usage_vw, shelfware_vw, underbilling_vw
-POST {{API}}/admin/bootstrap
+# Note: This will only work on AWS (requires Athena). Local version may fail gracefully.
+POST {{BASE_URL}}/admin/bootstrap
 Content-Type: application/json
 
 ###
 
-### 2. Get Shelfware Report
-# Returns top 20 reclaimable seats by annual saving
-GET {{API}}/reports/shelfware
+### 2. Get Actions Ledger for Specific Client
+# Returns actions for a specific client (replace 'C001' with actual client_id)
+GET {{BASE_URL}}/ledger?client_id=C001
 Content-Type: application/json
 
 ###
 
-### 3. Get Underbilling Report  
-# Returns invoice variance analysis with suggested addendums
-GET {{API}}/reports/underbilling
-Content-Type: application/json
-
-###
-
-### 4. Get Actions Ledger for Specific Client
-# Returns actions for a specific client (replace 'acme' with actual client_id)
-GET {{API}}/ledger?client_id=acme
-Content-Type: application/json
-
-###
-
-### 5. Get All Actions Ledger
+### 3. Get All Actions Ledger
 # Returns last 50 actions across all clients
-GET {{API}}/ledger
+GET {{BASE_URL}}/ledger
+Content-Type: application/json
+
+###
+
+### 4. Get Shelfware Report
+# Returns top 20 reclaimable seats by annual saving
+GET {{BASE_URL}}/reports/shelfware
+Content-Type: application/json
+
+###
+
+### 5. Get Underbilling Report  
+# Returns invoice variance analysis with suggested addendums
+GET {{BASE_URL}}/reports/underbilling
 Content-Type: application/json
 
 ###
 
 ### 6. Approve Action (Basic)
 # Approve an action with default estimated savings
-POST {{API}}/actions/{{ACTION_ID}}/approve
+POST {{BASE_URL}}/actions/{{ACTION_ID}}/approve
 Content-Type: application/json
 
 {
@@ -52,7 +62,7 @@ Content-Type: application/json
 
 ### 7. Approve Action with Custom Savings Override
 # Approve an action with custom estimated savings amount
-POST {{API}}/actions/{{ACTION_ID}}/approve
+POST {{BASE_URL}}/actions/{{ACTION_ID}}/approve
 Content-Type: application/json
 
 {
@@ -64,7 +74,7 @@ Content-Type: application/json
 
 ### 8. Approve Action with Email (SES Sandbox)
 # Approve and attempt to send email (requires verified sender/recipient in SES)
-POST {{API}}/actions/{{ACTION_ID}}/approve
+POST {{BASE_URL}}/actions/{{ACTION_ID}}/approve
 Content-Type: application/json
 
 {
@@ -77,20 +87,23 @@ Content-Type: application/json
 
 ### 9. Generate QBR PDF Report
 # Generate PDF for specific client and period (replace with actual values)
-POST {{API}}/qbr/pdf
+POST {{BASE_URL}}/qbr/pdf
 Content-Type: application/json
 
 {
-  "client_id": "acme",
+  "client_id": "C001",
   "period": "2025-09"
 }
 
 ###
 
-### 10. Generate QBR PDF with Query Parameters
-# Alternative way to generate PDF using query parameters
-POST {{API}}/qbr/pdf?client_id=acme&period=2025-09
+### 10. Evaluate Policies (Local Testing Only)
+# Manually trigger policy evaluation (on AWS, this runs automatically via EventBridge)
+POST {{BASE_URL}}/policies/evaluate
 Content-Type: application/json
+
+{
+}
 
 ###
 

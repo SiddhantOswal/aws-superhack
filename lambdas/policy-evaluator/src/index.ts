@@ -1,21 +1,10 @@
-import { S3Client, ListObjectsV2Command, GetObjectCommand } from '@aws-sdk/client-s3';
-import {
-  AthenaClient,
-  StartQueryExecutionCommand,
-  GetQueryExecutionCommand,
-  GetQueryResultsCommand,
-  QueryExecutionState,
-} from '@aws-sdk/client-athena';
-import { SFNClient, StartExecutionCommand } from '@aws-sdk/client-sfn';
+import { USE_LOCAL_MOCK, MOCK_PATHS } from '../../../src/config/localConfig';
+import { readJSON, queryAthenaMock, invokeLambdaMock, safeAwsImport } from '../../../src/utils/localService';
 
 const RAW_BUCKET = process.env.RAW_BUCKET || '';
 const ATHENA_DB = process.env.ATHENA_DB || '';
 const ATHENA_WORKGROUP = process.env.ATHENA_WORKGROUP || '';
 const STATE_MACHINE_ARN = process.env.STATE_MACHINE_ARN || '';
-
-const s3 = new S3Client({});
-const athena = new AthenaClient({});
-const sfn = new SFNClient({});
 
 interface PolicyThreshold {
   category: string;
@@ -37,8 +26,11 @@ async function streamToString(stream: any): Promise<string> {
   return Buffer.concat(chunks).toString('utf-8');
 }
 
-async function startAndWait(query: string): Promise<string> {
-  const start = await athena.send(
+async function startAndWait(query: string): Promise<{ client: any; id: string }> {
+  const { AthenaClient, StartQueryExecutionCommand, GetQueryExecutionCommand, QueryExecutionState } = await safeAwsImport('@aws-sdk/client-athena');
+  const region = process.env.AWS_REGION || 'ap-south-1';
+  const client = new AthenaClient({ region });
+  const start = await client.send(
     new StartQueryExecutionCommand({
       QueryString: query,
       QueryExecutionContext: { Database: ATHENA_DB },
@@ -49,9 +41,9 @@ async function startAndWait(query: string): Promise<string> {
   const startTime = Date.now();
   const timeoutMs = 3 * 60 * 1000;
   while (true) {
-    const exec = await athena.send(new GetQueryExecutionCommand({ QueryExecutionId: id }));
-    const state = exec.QueryExecution?.Status?.State as QueryExecutionState | undefined;
-    if (state === 'SUCCEEDED') return id;
+    const exec = await client.send(new GetQueryExecutionCommand({ QueryExecutionId: id }));
+    const state = exec.QueryExecution?.Status?.State as string | undefined;
+    if (state === 'SUCCEEDED') return { client, id };
     if (state === 'FAILED' || state === 'CANCELLED') {
       throw new Error(`Athena query ${id} ${state}: ${exec.QueryExecution?.Status?.StateChangeReason}`);
     }
@@ -66,15 +58,62 @@ FROM scope_usage_vw
 WHERE client_id='${clientId.replace(/'/g, "''")}'
   AND category='${category.replace(/'/g, "''")}'
   AND date_trunc('month', month) = date_trunc('month', date('${isoMonth}'))`;
-  const id = await startAndWait(q);
-  const res = await athena.send(new GetQueryResultsCommand({ QueryExecutionId: id, MaxResults: 5 }));
-  // Row 0 is header, row 1 is first data
-  const row = res.ResultSet?.Rows?.[1]?.Data?.[0]?.VarCharValue;
-  const val = row ? parseFloat(row) : 0;
-  return Number.isFinite(val) ? val : 0;
+  try {
+    const { GetQueryResultsCommand } = await safeAwsImport('@aws-sdk/client-athena');
+    const { client, id } = await startAndWait(q);
+    const res = await client.send(new GetQueryResultsCommand({ QueryExecutionId: id, MaxResults: 5 }));
+    const row = res.ResultSet?.Rows?.[1]?.Data?.[0]?.VarCharValue;
+    const val = row ? parseFloat(row) : 0;
+    return Number.isFinite(val) ? val : 0;
+  } catch {
+    return 0;
+  }
 }
 
 export async function main(): Promise<{ breaches_started: number }> {
+  if (USE_LOCAL_MOCK) {
+    // Local mode: read policies from mock-data and simulate Athena via local time entries aggregation
+    // eslint-disable-next-line no-console
+    console.log('Using local mock for policy evaluator');
+    const policies = await readJSON<any[]>(MOCK_PATHS.policies).catch(() => []);
+    const now = new Date();
+    const period = `${now.getUTCFullYear()}-${String(now.getUTCMonth() + 1).padStart(2, '0')}-01`;
+    let started = 0;
+    for (const p of policies) {
+      const clientId = p.client_id || p.client || '';
+      const thresholds = p.thresholds || [];
+      for (const th of thresholds) {
+        // Treat category as project in time_entries
+        const rows = await queryAthenaMock(MOCK_PATHS.time_entries, {
+          where: { client: clientId, project: th.category },
+          sumBy: 'hours',
+          groupBy: ['client', 'project'],
+        });
+        const hours = Number(rows?.[0]?.sum_hours || 0);
+        if (hours > (th.limit ?? 0)) {
+          const breachEvent = {
+            client_id: clientId,
+            contract_id: p.contract_id,
+            category: th.category,
+            limit: th.limit,
+            actual: hours,
+            rate_inr: th.rate_inr ?? 0,
+            period,
+            policy_key: 'mock-data/policies.json',
+          };
+          try {
+            await invokeLambdaMock('draft-change-order', breachEvent);
+            started += 1;
+          } catch {
+            // ignore in local mode
+          }
+        }
+      }
+    }
+    // eslint-disable-next-line no-console
+    console.log(`Breaches started (local): ${started}`);
+    return { breaches_started: started };
+  }
   if (!RAW_BUCKET || !ATHENA_DB || !ATHENA_WORKGROUP) {
     throw new Error('Missing env RAW_BUCKET/ATHENA_DB/ATHENA_WORKGROUP');
   }
@@ -83,12 +122,13 @@ export async function main(): Promise<{ breaches_started: number }> {
     console.warn('STATE_MACHINE_ARN not set; breaches will not trigger executions');
   }
 
-  const listed = await s3.send(
-    new ListObjectsV2Command({ Bucket: RAW_BUCKET, Prefix: 'policies/' }),
-  );
+  const { S3Client, ListObjectsV2Command, GetObjectCommand } = await safeAwsImport('@aws-sdk/client-s3');
+  const region = process.env.AWS_REGION || 'ap-south-1';
+  const s3 = new S3Client({ region });
+  const listed = await s3.send(new ListObjectsV2Command({ Bucket: RAW_BUCKET, Prefix: 'policies/' }));
   const keys = (listed.Contents || [])
-    .map((o) => o.Key!)
-    .filter((k) => k.endsWith('.json'));
+    .map((o: any) => o.Key!)
+    .filter((k: any) => (k as string).endsWith('.json'));
 
   const now = new Date();
   const period = `${now.getUTCFullYear()}-${String(now.getUTCMonth() + 1).padStart(2, '0')}-01`;
@@ -106,7 +146,7 @@ export async function main(): Promise<{ breaches_started: number }> {
       continue;
     }
 
-    for (const th of policy.thresholds || []) {
+    for (const th of (policy.thresholds || []) as any[]) {
       const hours = await getHoursFor(policy.client_id, th.category, period);
       if (hours > (th.limit ?? 0)) {
         const breachEvent = {
@@ -120,12 +160,13 @@ export async function main(): Promise<{ breaches_started: number }> {
           policy_key: key,
         };
         if (STATE_MACHINE_ARN) {
-          await sfn.send(
-            new StartExecutionCommand({
-              stateMachineArn: STATE_MACHINE_ARN,
-              input: JSON.stringify(breachEvent),
-            }),
-          );
+          const { SFNClient, StartExecutionCommand } = await safeAwsImport('@aws-sdk/client-sfn');
+          const region = process.env.AWS_REGION || 'ap-south-1';
+          const sfn = new SFNClient({ region });
+          await sfn.send(new StartExecutionCommand({
+            stateMachineArn: STATE_MACHINE_ARN,
+            input: JSON.stringify(breachEvent),
+          }));
           started += 1;
         }
       }

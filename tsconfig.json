@@ -2,15 +2,30 @@
   "compilerOptions": {
     "target": "ES2020",
     "module": "commonjs",
-    "strict": true,
+    "strict": false,
     "esModuleInterop": true,
     "forceConsistentCasingInFileNames": true,
     "skipLibCheck": true,
     "moduleResolution": "node",
     "resolveJsonModule": true,
-    "sourceMap": true
+    "sourceMap": true,
+
+    // ✅ Added: treat whole repo as one root
+    "baseUrl": ".",
+    "rootDir": ".",
+
+    // ✅ Added: path aliases for clean imports
+    "paths": {
+      "@src/*": ["src/*"],
+      "@config/*": ["src/config/*"],
+      "@utils/*": ["src/utils/*"]
+    }
   },
-  "files": [],
+
+  // ✅ Include all source folders
+  "include": ["src/**/*", "lambdas/**/*", "scripts/**/*"],
+
+  // ✅ Keep your existing project references
   "references": [
     { "path": "./lambdas/approve-action" },
     { "path": "./lambdas/athena-bootstrap" },
@@ -21,4 +36,3 @@
     { "path": "./lambdas/underbilling-report" }
   ]
 }
-

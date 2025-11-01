@@ -15,16 +15,18 @@
     "build": "pnpm -r run build",
     "synth": "cd infra && npx cdk synth",
     "deploy": "cd infra && npx cdk deploy --all",
-    "destroy": "cd infra && npx cdk destroy --all"
+    "destroy": "cd infra && npx cdk destroy --all",
+    "start:mock": "ts-node src/localServer.ts"
   },
   "devDependencies": {
+    "@types/express": "^4.17.23",
+    "@types/node": "^20.12.12",
     "aws-cdk": "^2.150.0",
     "aws-cdk-lib": "^2.154.0",
     "constructs": "^10.3.0",
     "esbuild": "^0.23.0",
-    "@types/node": "^20.12.12",
     "ts-node": "^10.9.2",
-    "typescript": "^5.4.0"
+    "typescript": "^5.9.3"
   },
   "dependencies": {
     "@aws-sdk/client-athena": "^3.645.0",
@@ -37,7 +39,8 @@
     "@aws-sdk/client-sts": "^3.645.0",
     "@aws-sdk/lib-dynamodb": "^3.645.0",
     "@aws-sdk/s3-request-presigner": "^3.645.0",
+    "express": "^4.21.2",
     "pdfkit": "^0.15.0"
-  }
+  },
+  "type": "commonjs"
 }
-

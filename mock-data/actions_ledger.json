@@ -1,0 +1,9 @@
+[
+  {
+    "action_id": "12345",
+    "status": "APPROVED",
+    "approved_at": "2025-11-01T13:39:17.502Z",
+    "est_saving_inr": 50000,
+    "draft_key": "drafts/12345.json"
+  }
+]

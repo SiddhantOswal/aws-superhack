@@ -1,0 +1,10 @@
+[
+  { "license_id": "LIC-1001", "client": "acme", "product": "Acme CRM", "seats": 25, "rate_inr": 1200, "start_date": "2025-01-01", "end_date": "2025-12-31", "status": "active" },
+  { "license_id": "LIC-1002", "client": "acme", "product": "Acme Analytics", "seats": 10, "rate_inr": 2000, "start_date": "2025-03-01", "end_date": "2026-02-28", "status": "active" },
+  { "license_id": "LIC-1003", "client": "globex", "product": "Globex Support Suite", "seats": 40, "rate_inr": 900, "start_date": "2025-02-15", "end_date": "2026-02-14", "status": "active" },
+  { "license_id": "LIC-1004", "client": "globex", "product": "Globex BI", "seats": 15, "rate_inr": 2500, "start_date": "2024-11-01", "end_date": "2025-10-31", "status": "expired" },
+  { "license_id": "LIC-1005", "client": "initech", "product": "Initech Docs", "seats": 50, "rate_inr": 750, "start_date": "2025-04-01", "end_date": "2026-03-31", "status": "active" },
+  { "license_id": "LIC-1006", "client": "acme", "product": "Acme Helpdesk", "seats": 20, "rate_inr": 1500, "start_date": "2025-05-01", "end_date": "2026-04-30", "status": "active" }
+]
+
+

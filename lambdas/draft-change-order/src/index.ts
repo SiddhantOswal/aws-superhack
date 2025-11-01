@@ -1,4 +1,7 @@
 import { S3Client, PutObjectCommand } from '@aws-sdk/client-s3';
+import { USE_LOCAL_MOCK, MOCK_PATHS } from '../../src/config/localConfig';
+import { writeJSON } from '../../src/utils/localService';
+import * as path from 'path';
 import { randomUUID } from 'crypto';
 
 const REPORTS_BUCKET = process.env.REPORTS_BUCKET || '';
@@ -135,6 +138,13 @@ function fallbackDraft(event: BreachEvent) {
 }
 
 export async function main(event: BreachEvent): Promise<{ action_id: string; draft_s3_key: string; co_json: any }> {
+  if (USE_LOCAL_MOCK) {
+    const actionId = randomUUID();
+    const key = `drafts/${actionId}.json`;
+    const coJson = fallbackDraft(event);
+    await writeJSON(path.join(MOCK_PATHS.drafts, `${actionId}.json`), { breach: event, co: coJson });
+    return { action_id: actionId, draft_s3_key: key, co_json: coJson };
+  }
   if (!REPORTS_BUCKET) throw new Error('Missing REPORTS_BUCKET');
   const actionId = randomUUID();
 
